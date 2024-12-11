@@ -49,6 +49,20 @@ int main()
 
     fclose(file);   //closes the file
 
+    // Creates float for height and scale for text
+    float height = 0;
+    float scale = 0;
+
+    // Asks user for height of text until value entered is between 4mm and 10mm
+    while (height < 4 || height > 10)
+    {
+        printf("Enter height of text between 4mm and 10mm: ");
+        scanf("%f", &height);
+    }
+
+    // Operation to create scale to apply correct height to text
+    scale = height/18;
+    
     //char mode[]= {'8','N','1',0};
     char buffer[100];
 
@@ -117,5 +131,5 @@ void SendCommands (char *buffer )
     PrintBuffer (&buffer[0]);
     WaitForReply();
     Sleep(100); // Can omit this when using the writing robot but has minimal effect
-    // getch(); // Omit this once basic testing with emulator has taken place
+    // getch(); // Omhit this once basic testing with emulator has taken place
 }
