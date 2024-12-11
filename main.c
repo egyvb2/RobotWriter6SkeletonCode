@@ -5,12 +5,49 @@
 #include "rs232.h"
 #include "serial.h"
 
+// Define struct to store font data G commands
+typedef struct 
+{
+    int num1;
+    int num2;
+    int num3;
+} fontData;
+
 #define bdrate 115200               /* 115200 baud */
+
 
 void SendCommands (char *buffer );
 
 int main()
 {
+    // Variables for reading font file
+    FILE *file;                             // File pointer
+    int maxLines = 1027;                    // Maximum number of lines set to number of lines in file
+    fontData fontDataArray[maxLines];       // Struct array to store data in font file
+    int i = 0;                              // Index for looping through array and file
+
+    // Open the font file in read mode
+    file = fopen("SingleStrokeFont.txt", "r");
+
+    // Error checking for file opening
+    if (file == NULL)
+    {
+        perror("File not found, exiting program");
+        return 1;
+    }
+
+    // Read each line of the font file and store the numbers in the struct array
+    while (fscanf(file, "%d %d %d", &fontDataArray[i].num1, &fontDataArray[i].num2, &fontDataArray[i].num3) == 3) 
+    {
+        i++;
+
+        if (i >= maxLines)      // Break from while loop when at end of file
+        {
+            break;
+        }
+    }
+
+    fclose(file);   //closes the file
 
     //char mode[]= {'8','N','1',0};
     char buffer[100];

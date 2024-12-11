@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/BVino/Documents/Mechanical Engineering year 3/Mechatronics and Computer Engineering/Software Project/RobotWriter6SkeletonCode",
-      "program": "c:/Users/BVino/Documents/Mechanical Engineering year 3/Mechatronics and Computer Engineering/Software Project/RobotWriter6SkeletonCode/build/Debug/outDebug",
+      "cwd": "c:/Users/BVino/Documents/Mechanical Engineering year 3/Mechatronics and Computer Engineering/Software Project/RobotWriter6SkeletonCode/code test",
+      "program": "c:/Users/BVino/Documents/Mechanical Engineering year 3/Mechatronics and Computer Engineering/Software Project/RobotWriter6SkeletonCode/code test/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
