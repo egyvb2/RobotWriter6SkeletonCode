@@ -20,6 +20,7 @@ void SendCommands (char *buffer );
 
 int readNumberOfWordsFromFile(char *textFileName);
 
+char *readWordFromFile(char *textFileName, int nWord);
 
 
 int main()
@@ -91,6 +92,16 @@ int main()
 
     printf ("\nThe robot is now ready to draw\n");
 
+    
+    //These commands get the robot into 'ready to draw mode' and need to be sent before any writing commands
+
+    sprintf (buffer, "G1 X0 Y0 F1000\n");
+    SendCommands(buffer);
+    sprintf (buffer, "M3\n");
+    SendCommands(buffer);
+    sprintf (buffer, "S0\n");
+    SendCommands(buffer);
+
     char textFileName;      // name of text file for text to be drawn
     int numWords = 0;       // number of words in file
 
@@ -102,15 +113,14 @@ int main()
         numWords = readNumberOfWordsFromFile(&textFileName);    // calls function returning number of words in file
     }
 
-    //These commands get the robot into 'ready to draw mode' and need to be sent before any writing commands
+    int n = 0;
 
-    sprintf (buffer, "G1 X0 Y0 F1000\n");
-    SendCommands(buffer);
-    sprintf (buffer, "M3\n");
-    SendCommands(buffer);
-    sprintf (buffer, "S0\n");
-    SendCommands(buffer);
-
+    // Runs for each word in text file
+    while(n < numWords)
+    {    
+        char *word = readWordFromFile(&textFileName, n);
+        n++;
+    }
 
     // These are sample commands to draw out some information - these are the ones you will be generating.
     sprintf (buffer, "G0 X-13.41849 Y0.000\n");
@@ -176,4 +186,31 @@ int readNumberOfWordsFromFile(char *textFileName)
     fclose(file);       // closes the file
 
     return numWords;    // returns number of words
+}
+
+char *readWordFromFile(char *textFileName, int nWord)
+{
+    FILE *file;             // array containing each letter of word
+    int n = 0;              // number of words that have been read
+    char word[100];         // word read from file
+    char *nthWord = NULL;    // pointer to resultant word
+
+    // Opens file
+    file = fopen(textFileName, "r");
+
+    // Loops through file until desired word is found
+    while(fscanf(file, "%99s", word) == 1)
+    {
+        if(n == nWord)
+        {
+            fclose(file);
+            break;
+        }
+        n++;
+    }
+
+    // Assign correct amount of memory and return the word
+    nthWord = malloc(strlen(word) + 1);
+    strcpy(nthWord, word);
+    return nthWord;
 }
