@@ -18,6 +18,10 @@ typedef struct
 
 void SendCommands (char *buffer );
 
+int readNumberOfWordsFromFile(char *textFileName);
+
+
+
 int main()
 {
     // Variables for reading font file
@@ -56,13 +60,13 @@ int main()
     // Asks user for height of text until value entered is between 4mm and 10mm
     while (height < 4 || height > 10)
     {
-        printf("Enter height of text between 4mm and 10mm: ");
+        printf("\nEnter height of text between 4mm and 10mm: ");
         scanf("%f", &height);
     }
 
     // Operation to create scale to apply correct height to text
     scale = height/18;
-    
+
     //char mode[]= {'8','N','1',0};
     char buffer[100];
 
@@ -87,7 +91,19 @@ int main()
 
     printf ("\nThe robot is now ready to draw\n");
 
-        //These commands get the robot into 'ready to draw mode' and need to be sent before any writing commands
+    char textFileName;      // name of text file for text to be drawn
+    int numWords = 0;       // number of words in file
+
+    // User input file name until valid file is found
+    while(numWords == 0)
+    {
+        printf("Enter name of text file containing text to be written by robot: ");
+        scanf("%s", &textFileName);
+        numWords = readNumberOfWordsFromFile(&textFileName);    // calls function returning number of words in file
+    }
+
+    //These commands get the robot into 'ready to draw mode' and need to be sent before any writing commands
+
     sprintf (buffer, "G1 X0 Y0 F1000\n");
     SendCommands(buffer);
     sprintf (buffer, "M3\n");
@@ -132,4 +148,32 @@ void SendCommands (char *buffer )
     WaitForReply();
     Sleep(100); // Can omit this when using the writing robot but has minimal effect
     // getch(); // Omhit this once basic testing with emulator has taken place
+}
+
+// Function to read number of words from file
+int readNumberOfWordsFromFile(char *textFileName)
+{
+    FILE *file;
+    char word[100];     // array containing each letter of word
+    int numWords = 0;   // number of words to be returned
+
+    // Opens file
+    file = fopen(textFileName, "r");
+
+    // Error checking with file
+    if (file == NULL)
+    {
+        printf("File not found or error with file\n");
+        return numWords;
+    }
+
+    // Loops through file and for each word found, increment numWords by 1
+    while(fscanf(file, "%99s", word) == 1)
+    {
+        numWords++;
+    }
+
+    fclose(file);       // closes the file
+
+    return numWords;    // returns number of words
 }
