@@ -13,6 +13,14 @@ typedef struct
     int num3;
 } fontData;
 
+typedef struct
+{
+    float XOffset;
+    float YOffset;
+    int pen;
+} GCodeData;
+
+
 #define bdrate 115200               /* 115200 baud */
 
 
@@ -22,6 +30,7 @@ int readNumberOfWordsFromFile(char *textFileName);
 
 char *readWordFromFile(char *textFileName, int nWord);
 
+GCodeData writeLetter(fontData fontDataArray[], int targetASCII, GCodeData data, float scale);
 
 int main()
 {
@@ -114,37 +123,32 @@ int main()
     }
 
     int n = 0;
+    GCodeData data;
+    data.pen = 0;
+    data.XOffset = 0;
+    data.YOffset = 0;
 
     // Runs for each word in text file
     while(n < numWords)
     {    
-        char *word = readWordFromFile(&textFileName, n);
+        char *word = readWordFromFile(&textFileName, n);    // Reads nth word from file
+
+        int wordLen = (int)strlen(word);    // length of word
+        int characteri = 0;                 // index for character in word
+
+        // Repeats until all letters in word have been passed into writeLetter functuin
+        while (characteri < wordLen)
+        {
+            int ASCII = (int)word[characteri];      // find ASCII code for indexed character in word
+            data = writeLetter(fontDataArray, ASCII, data, scale);      // calls function to write letter 
+            characteri++;
+        }
         n++;
     }
 
-    // These are sample commands to draw out some information - these are the ones you will be generating.
-    sprintf (buffer, "G0 X-13.41849 Y0.000\n");
-    SendCommands(buffer);
-    sprintf (buffer, "S1000\n");
-    SendCommands(buffer);
-    sprintf (buffer, "G1 X-13.41849 Y-4.28041\n");
-    SendCommands(buffer);
-    sprintf (buffer, "G1 X-13.41849 Y0.0000\n");
-    SendCommands(buffer);
-    sprintf (buffer, "G1 X-13.41089 Y4.28041\n");
-    SendCommands(buffer);
-    sprintf (buffer, "S0\n");
-    SendCommands(buffer);
-    sprintf (buffer, "G0 X-7.17524 Y0\n");
-    SendCommands(buffer);
-    sprintf (buffer, "S1000\n");
-    SendCommands(buffer);
-    sprintf (buffer, "G0 X0 Y0\n");
-    SendCommands(buffer);
-
     // Before we exit the program we need to close the COM port
     CloseRS232Port();
-    printf("Com port now closed\n");
+    printf("Com port now closed\n");    
 
     return (0);
 }
@@ -188,6 +192,7 @@ int readNumberOfWordsFromFile(char *textFileName)
     return numWords;    // returns number of words
 }
 
+// Function to read word from file
 char *readWordFromFile(char *textFileName, int nWord)
 {
     FILE *file;             // array containing each letter of word
@@ -213,4 +218,62 @@ char *readWordFromFile(char *textFileName, int nWord)
     nthWord = malloc(strlen(word) + 1);
     strcpy(nthWord, word);
     return nthWord;
+}
+
+// Function to send a single character G code commands to robot
+GCodeData writeLetter(fontData fontDataArray[], int targetASCII, GCodeData data, float scale) 
+{
+    int commandNumber = 0;      // number of commands than need to be run
+    int commandsRan = 1;        // current number of commands that have been run
+    int index = 0;              // index for command in fontDataArray
+    char buffer[100];           // buffer for sending commands to robot
+    int n = 0;                  // index for where ASCII code was found in fontDataArray
+    float X;                    // G code X position 
+    float Y;                    // G code Y position
+
+    // Looks through font data array to try find the appropriate character number
+    for (int i = 0; i < 1027; i++)
+    {
+        if (fontDataArray[i].num1 == 999 && fontDataArray[i].num2 == targetASCII) 
+        {
+            commandNumber = fontDataArray[i].num3;
+            n = i;
+            break;
+        }
+    }
+
+    // Loops for all commands ran
+    while (commandsRan <= commandNumber)
+    {  
+        index = n + commandsRan;
+
+        // If pen has changed, updates pen up or down depending on pen values specified for command
+        if (fontDataArray[index].num3 != data.pen)
+        {
+            data.pen = fontDataArray[index].num3;
+            if (data.pen == 1)
+            {
+                sprintf (buffer, "S1000\n");    // pen down
+            }
+            else
+            {
+                sprintf (buffer, "S0\n");       // pen up
+            }
+            SendCommands(buffer);
+        }
+
+        // Determines G code for X and Y direction by multiplying X command by scale and adding offset
+        X = (float)fontDataArray[index].num1 * scale + data.XOffset;
+        Y = (float)fontDataArray[index].num2 * scale + data.YOffset;
+
+        // Sends commands
+        sprintf(buffer, "G%d X%f Y%f\n", data.pen, X, Y);
+        SendCommands(buffer);
+
+        commandsRan++;
+    }
+
+    data.XOffset = X;
+
+    return data; // Return data
 }
